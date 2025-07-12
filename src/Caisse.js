@@ -8,8 +8,9 @@ const Caisse = () => {
   const [panier, setPanier] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
   const [modePaiement, setModePaiement] = useState('Espèces');
-  const navigate = useNavigate();
+  const navigate = useNavigate();  // Redirection vers une autre page
 
+  // Récupération des produits et clients
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/produits')
       .then(response => setProduits(response.data))
@@ -20,6 +21,7 @@ const Caisse = () => {
       .catch(error => console.error('Erreur clients:', error));
   }, []);
 
+  // Ajouter un produit au panier
   const ajouterAuPanier = (produit) => {
     const existant = panier.find(p => p.id === produit.id);
     if (existant) {
@@ -31,20 +33,24 @@ const Caisse = () => {
     }
   };
 
+  // Retirer un produit du panier
   const retirerDuPanier = (id) => {
     setPanier(panier.filter(p => p.id !== id));
   };
 
+  // Mettre à jour la quantité d'un produit dans le panier
   const handleQuantiteChange = (id, newQuantite) => {
     setPanier(panier.map(p =>
-      p.id === id ? { ...p, quantite: Number(newQuantite) } : p
+      p.id === id ? { ...p, quantite: Math.max(1, Number(newQuantite)) } : p
     ));
   };
 
+  // Calculer le total du panier en temps réel
   const calculerTotal = () => {
     return panier.reduce((total, item) => total + item.prix_vente * item.quantite, 0);
   };
 
+  // Soumettre la vente
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -65,8 +71,8 @@ const Caisse = () => {
     axios.post('http://127.0.0.1:8000/api/ventes', donnees)
       .then(response => {
         alert('Vente enregistrée avec succès !');
-        setPanier([]);
-        navigate('/'); // ou navigate('/ventes') si tu fais une liste des ventes
+        setPanier([]); // Réinitialiser le panier
+        navigate('/ventes'); // Rediriger vers l'historique des ventes
       })
       .catch(error => {
         console.error('Erreur lors de l\'enregistrement de la vente :', error);
@@ -75,12 +81,18 @@ const Caisse = () => {
   };
 
   return (
-    <div>
-      <h1>🛍️ Caisse</h1>
+    <div className="container mt-4">
+      <h1 className="text-center mb-4">🛍️ Caisse</h1>
 
-      <div>
-        <label>Client : </label>
-        <select value={selectedClient} onChange={e => setSelectedClient(e.target.value)}>
+      {/* Sélection du client */}
+      <div className="mb-3">
+        <label htmlFor="clientSelect" className="form-label">Client : </label>
+        <select
+          id="clientSelect"
+          className="form-select"
+          value={selectedClient}
+          onChange={e => setSelectedClient(e.target.value)}
+        >
           <option value="">Client anonyme</option>
           {clients.map(client => (
             <option key={client.id} value={client.id}>
@@ -90,30 +102,41 @@ const Caisse = () => {
         </select>
       </div>
 
-      <div>
-        <label>Mode de paiement : </label>
-        <select value={modePaiement} onChange={e => setModePaiement(e.target.value)}>
+      {/* Sélection du mode de paiement */}
+      <div className="mb-3">
+        <label htmlFor="modePaiement" className="form-label">Mode de paiement : </label>
+        <select
+          id="modePaiement"
+          className="form-select"
+          value={modePaiement}
+          onChange={e => setModePaiement(e.target.value)}
+        >
           <option value="Espèces">Espèces</option>
           <option value="Carte bancaire">Carte bancaire</option>
           <option value="Mobile Money">Mobile Money</option>
         </select>
       </div>
 
-      <h3>📦 Produits</h3>
-      <ul>
+      {/* Liste des produits */}
+      <h3 className="mt-4">📦 Produits</h3>
+      <div className="list-group">
         {produits.map(p => (
-          <li key={p.id}>
-            {p.nom} - {p.prix_vente.toLocaleString()} FCFA &nbsp;
-            <button onClick={() => ajouterAuPanier(p)}>➕ Ajouter</button>
-          </li>
+          <button
+            key={p.id}
+            className="list-group-item list-group-item-action"
+            onClick={() => ajouterAuPanier(p)}
+          >
+            {p.nom} - {p.prix_vente.toLocaleString()} FCFA ➕ Ajouter
+          </button>
         ))}
-      </ul>
+      </div>
 
-      <h3>🛒 Panier</h3>
+      {/* Panier */}
+      <h3 className="mt-4">🛒 Panier</h3>
       {panier.length === 0 ? (
         <p>Aucun produit dans le panier</p>
       ) : (
-        <table>
+        <table className="table table-bordered">
           <thead>
             <tr>
               <th>Produit</th>
@@ -131,6 +154,7 @@ const Caisse = () => {
                   <input
                     type="number"
                     min="1"
+                    className="form-control"
                     value={item.quantite}
                     onChange={e => handleQuantiteChange(item.id, e.target.value)}
                   />
@@ -138,7 +162,7 @@ const Caisse = () => {
                 <td>{item.prix_vente.toLocaleString()} FCFA</td>
                 <td>{(item.prix_vente * item.quantite).toLocaleString()} FCFA</td>
                 <td>
-                  <button onClick={() => retirerDuPanier(item.id)}>❌</button>
+                  <button className="btn btn-danger" onClick={() => retirerDuPanier(item.id)}>❌</button>
                 </td>
               </tr>
             ))}
@@ -146,9 +170,11 @@ const Caisse = () => {
         </table>
       )}
 
-      <h3>Total : {calculerTotal().toLocaleString()} FCFA</h3>
+      {/* Affichage du total */}
+      <h3 className="mt-4">Total : {calculerTotal().toLocaleString()} FCFA</h3>
 
-      <button onClick={handleSubmit} disabled={panier.length === 0}>
+      {/* Bouton pour valider la vente */}
+      <button className="btn btn-success" onClick={handleSubmit} disabled={panier.length === 0}>
         ✅ Valider la vente
       </button>
     </div>
