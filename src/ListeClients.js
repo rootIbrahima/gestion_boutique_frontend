@@ -9,7 +9,6 @@ import {
   User, 
   Mail, 
   Phone, 
-  MapPin,
   Loader2,
   Users,
   Filter,
@@ -264,12 +263,6 @@ const ListeClients = () => {
                         <Phone className="h-4 w-4 text-green-600" />
                       </div>
                       <span className="text-sm">{client.telephone}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
-                        <MapPin className="h-4 w-4 text-purple-600" />
-                      </div>
-                      <span className="text-sm truncate">{client.adresse || 'Non précisé'}</span>
                     </div>
                   </div>
 

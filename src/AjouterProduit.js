@@ -9,6 +9,7 @@ const AjouterProduit = () => {
   const [prixVente, setPrixVente] = useState('');
   const [categorieId, setCategorieId] = useState('');
   const [categories, setCategories] = useState([]);  // État pour stocker les catégories
+  const [image, setImage] = useState(null);  // État pour stocker l'image téléchargée
   const navigate = useNavigate();
 
   // Charger les catégories depuis l'API
@@ -26,15 +27,18 @@ const AjouterProduit = () => {
     e.preventDefault();
 
     // Préparer les données du produit à envoyer
-    const produitData = {
-      nom,
-      description,
-      prix_achat: prixAchat,
-      prix_vente: prixVente,
-      categorie_id: categorieId,  // On envoie l'ID de la catégorie
-    };
+    const formData = new FormData();
+    formData.append('nom', nom);
+    formData.append('description', description);
+    formData.append('prix_achat', prixAchat);
+    formData.append('prix_vente', prixVente);
+    formData.append('categorie_id', categorieId);
+    if (image) {
+      formData.append('image', image);  // Ajouter l'image au formData
+    }
 
-    axios.post('http://127.0.0.1:8000/api/produits', produitData)
+    // Envoyer les données avec l'image
+    axios.post('http://127.0.0.1:8000/api/produits', formData)
       .then(response => {
         // Lorsque le produit est ajouté avec succès, on sauvegarde un message de succès dans le localStorage
         localStorage.setItem('successMessage', 'Produit ajouté avec succès!');
@@ -51,7 +55,7 @@ const AjouterProduit = () => {
   return (
     <div className="container mt-5">
       <h1 className="mb-4">Ajouter un produit</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
 
         <div className="form-group">
           <label>Nom :</label>
@@ -112,6 +116,17 @@ const AjouterProduit = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Champ pour télécharger l'image */}
+        <div className="form-group">
+          <label>Image :</label>
+          <input
+            type="file"
+            className="form-control"
+            onChange={(e) => setImage(e.target.files[0])}  // Gérer l'image téléchargée
+            accept="image/*"
+          />
         </div>
 
         <button type="submit" className="btn btn-primary mt-3">Ajouter le produit</button>
