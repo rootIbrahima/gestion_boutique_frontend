@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Users, Plus, CreditCard, Menu, X, Home, Package, UserPlus, FileText, Settings, Bell, Search, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
+import { ShoppingBag, Users, Plus, CreditCard, Menu, X, Home, Package, UserPlus, FileText, Settings, Bell, Search, ChevronRight, LogOut } from 'lucide-react';
 
 // Importation des composants
+import Login from './Login';
 import ListeProduits from './ListeProduits';
 import AjouterProduit from './AjouterProduit';
 import ModifierProduit from './ModifierProduit';
@@ -14,6 +15,16 @@ import HistoriqueVentes from './HistoriqueVentes';
 import ListeVentes from './ListeVentes';
 import Statistiques from './Statistiques';
 import StockGraph from './StockGraph';
+
+// Fonction de protection des routes
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 // Composant de navigation avec design moderne
 const NavItem = ({ to, icon: Icon, children, isActive, badge }) => (
@@ -43,7 +54,7 @@ const NavItem = ({ to, icon: Icon, children, isActive, badge }) => (
 );
 
 // Composant de navigation mobile moderne
-const MobileNav = ({ isOpen, toggleNav, currentPath }) => (
+const MobileNav = ({ isOpen, toggleNav, currentPath, onLogout }) => (
   <div className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${isOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}>
     <div 
       className="fixed inset-0 bg-black/50 backdrop-blur-sm"
@@ -81,6 +92,15 @@ const MobileNav = ({ isOpen, toggleNav, currentPath }) => (
         <NavItem to="/ventes" icon={FileText} isActive={currentPath === '/ventes'}>Historique des Ventes</NavItem>
         <NavItem to="/statistiques" icon={Settings} isActive={currentPath === '/statistiques'}>Statistiques</NavItem>
         <NavItem to="/stocks" icon={Package} isActive={currentPath === '/stocks'}>Stocks</NavItem>
+        
+        {/* Bouton de déconnexion mobile */}
+        <button 
+          onClick={onLogout}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-red-600 hover:bg-red-50 transition-all duration-300 mt-6"
+        >
+          <LogOut size={20} />
+          <span className="font-medium">Déconnexion</span>
+        </button>
       </nav>
     </div>
   </div>
@@ -89,10 +109,26 @@ const MobileNav = ({ isOpen, toggleNav, currentPath }) => (
 // Composant principal avec layout pleine page
 const AppLayout = ({ children }) => {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+
+  useEffect(() => {
+    // Récupérer les informations utilisateur depuis le localStorage ou une API
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   const toggleMobileNav = () => {
     setIsMobileNavOpen(!isMobileNavOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.href = '/login';
   };
 
   return (
@@ -136,13 +172,29 @@ const AppLayout = ({ children }) => {
               {/* Avatar et profil */}
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-sm">A</span>
+                  <span className="text-white font-bold text-sm">
+                    {user?.nom ? user.nom.charAt(0).toUpperCase() : 'A'}
+                  </span>
                 </div>
                 <div className="hidden lg:block">
-                  <span className="text-sm font-medium text-gray-700">Admin</span>
-                  <p className="text-xs text-gray-500">Administrateur</p>
+                  <span className="text-sm font-medium text-gray-700">
+                    {user?.nom || 'Admin'}
+                  </span>
+                  <p className="text-xs text-gray-500">
+                    {user?.role || 'Administrateur'}
+                  </p>
                 </div>
               </div>
+
+              {/* Bouton de déconnexion desktop */}
+              <button 
+                onClick={handleLogout}
+                className="hidden lg:flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                title="Déconnexion"
+              >
+                <LogOut size={18} />
+                <span className="text-sm font-medium">Déconnexion</span>
+              </button>
             </div>
           </div>
         </div>
@@ -178,7 +230,12 @@ const AppLayout = ({ children }) => {
         </main>
       </div>
 
-      <MobileNav isOpen={isMobileNavOpen} toggleNav={toggleMobileNav} currentPath={location.pathname} />
+      <MobileNav 
+        isOpen={isMobileNavOpen} 
+        toggleNav={toggleMobileNav} 
+        currentPath={location.pathname} 
+        onLogout={handleLogout}
+      />
     </div>
   );
 };
@@ -187,21 +244,99 @@ const AppLayout = ({ children }) => {
 function App() {
   return (
     <Router>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<ListeProduits />} />
-          <Route path="/ajouter-produit" element={<AjouterProduit />} />
-          <Route path="/ajouter-client" element={<AjouterClient />} />
-          <Route path="/modifier-produit/:id" element={<ModifierProduit />} />
-          <Route path="/clients" element={<ListeClients />} />
-          <Route path="/modifier-client/:id" element={<ModifierClient />} />
-          <Route path="/caisse" element={<Caisse />} />
-          <Route path="/ventes" element={<ListeVentes />} />
-          <Route path="/ventes/:id" element={<HistoriqueVentes />} />
-          <Route path="/statistiques" element={<Statistiques />} />
-          <Route path="/stocks" element={<StockGraph />} />
-        </Routes>
-      </AppLayout>
+      <Routes>
+        {/* Route de login */}
+        <Route path="/login" element={<Login />} />
+        
+        {/* Routes protégées avec AppLayout */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ListeProduits />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/ajouter-produit" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AjouterProduit />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/modifier-produit/:id" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ModifierProduit />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/clients" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ListeClients />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/ajouter-client" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AjouterClient />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/modifier-client/:id" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ModifierClient />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/caisse" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Caisse />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/ventes" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ListeVentes />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/ventes/:id" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <HistoriqueVentes />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/statistiques" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Statistiques />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/stocks" element={
+          <ProtectedRoute>
+            <AppLayout>
+              <StockGraph />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+      </Routes>
     </Router>
   );
 }
