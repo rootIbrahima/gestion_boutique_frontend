@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, Outlet } from 'react-router-dom';
 import { ShoppingBag, Users, Plus, CreditCard, Menu, X, Home, Package, FileText, Settings, Bell, Search, ChevronRight, LogOut } from 'lucide-react';
 
 // Importation des composants
@@ -15,7 +15,7 @@ import HistoriqueVentes from './HistoriqueVentes';
 import ListeVentes from './ListeVentes';
 import Statistiques from './Statistiques';
 import StockGraph from './StockGraph';
-import GestionEmployes from './GestionEmployes';  // Ajout de la page GestionEmployes
+import GestionEmployes from './GestionEmployes';
 
 // Fonction de protection des routes
 const ProtectedRoute = ({ children }) => {
@@ -108,8 +108,8 @@ const MobileNav = ({ isOpen, toggleNav, currentPath, onLogout }) => (
   </div>
 );
 
-// Composant principal avec layout pleine page
-const AppLayout = ({ children }) => {
+// Composant principal avec layout pleine page - MODIFIÉ pour utiliser Outlet
+const AppLayout = () => {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
@@ -171,7 +171,6 @@ const AppLayout = ({ children }) => {
                 </button>
               </div>
               
-            
               {/* Avatar et profil */}
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -224,11 +223,11 @@ const AppLayout = ({ children }) => {
           </div>
         </nav>
 
-        {/* Zone de contenu principal */}
+        {/* Zone de contenu principal - MODIFIÉ pour utiliser Outlet */}
         <main className="flex-1 min-w-0 bg-white/80 backdrop-blur-xl overflow-hidden">
           <div className="h-full p-6">
             <div className="h-full overflow-y-auto">
-              {children}
+              <Outlet />
             </div>
           </div>
         </main>
@@ -244,25 +243,36 @@ const AppLayout = ({ children }) => {
   );
 };
 
+// Composant App refactorisé avec Layout Routes
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Route publique */}
         <Route path="/login" element={<Login />} />
         
-        {/* Routes protégées */}
-        <Route path="/" element={<ProtectedRoute><AppLayout><ListeProduits /></AppLayout></ProtectedRoute>} />
-        <Route path="/ajouter-produit" element={<ProtectedRoute><AppLayout><AjouterProduit /></AppLayout></ProtectedRoute>} />
-        <Route path="/modifier-produit/:id" element={<ProtectedRoute><AppLayout><ModifierProduit /></AppLayout></ProtectedRoute>} />
-        <Route path="/clients" element={<ProtectedRoute><AppLayout><ListeClients /></AppLayout></ProtectedRoute>} />
-        <Route path="/ajouter-client" element={<ProtectedRoute><AppLayout><AjouterClient /></AppLayout></ProtectedRoute>} />
-        <Route path="/modifier-client/:id" element={<ProtectedRoute><AppLayout><ModifierClient /></AppLayout></ProtectedRoute>} />
-        <Route path="/caisse" element={<ProtectedRoute><AppLayout><Caisse /></AppLayout></ProtectedRoute>} />
-        <Route path="/ventes" element={<ProtectedRoute><AppLayout><ListeVentes /></AppLayout></ProtectedRoute>} />
-        <Route path="/ventes/:id" element={<ProtectedRoute><AppLayout><HistoriqueVentes /></AppLayout></ProtectedRoute>} />
-        <Route path="/statistiques" element={<ProtectedRoute><AppLayout><Statistiques /></AppLayout></ProtectedRoute>} />
-        <Route path="/stocks" element={<ProtectedRoute><AppLayout><StockGraph /></AppLayout></ProtectedRoute>} />
-        <Route path="/gestion-employes" element={<ProtectedRoute><AppLayout><GestionEmployes /></AppLayout></ProtectedRoute>} />
+        {/* Groupe des routes protégées avec layout */}
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<ListeProduits />} />
+          <Route path="ajouter-produit" element={<AjouterProduit />} />
+          <Route path="modifier-produit/:id" element={<ModifierProduit />} />
+          <Route path="clients" element={<ListeClients />} />
+          <Route path="ajouter-client" element={<AjouterClient />} />
+          <Route path="modifier-client/:id" element={<ModifierClient />} />
+          <Route path="caisse" element={<Caisse />} />
+          <Route path="ventes" element={<ListeVentes />} />
+          <Route path="ventes/:id" element={<HistoriqueVentes />} />
+          <Route path="statistiques" element={<Statistiques />} />
+          <Route path="stocks" element={<StockGraph />} />
+          <Route path="gestion-employes" element={<GestionEmployes />} />
+        </Route>
       </Routes>
     </Router>
   );

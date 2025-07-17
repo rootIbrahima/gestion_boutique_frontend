@@ -253,9 +253,7 @@ const GestionEmployes = () => {
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                <span className="text-sm font-medium text-blue-600">
-                  {employes.length} employé{employes.length !== 1 ? 's' : ''}
-                </span>
+               
               </div>
             </div>
           </div>
