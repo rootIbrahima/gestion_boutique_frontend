@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
-import { ShoppingBag, Users, Plus, CreditCard, Menu, X, Home, Package, UserPlus, FileText, Settings, Bell, Search, ChevronRight, LogOut } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { ShoppingBag, Users, Plus, CreditCard, Menu, X, Home, Package, FileText, Settings, Bell, Search, ChevronRight, LogOut } from 'lucide-react';
 
 // Importation des composants
 import Login from './Login';
@@ -15,6 +15,7 @@ import HistoriqueVentes from './HistoriqueVentes';
 import ListeVentes from './ListeVentes';
 import Statistiques from './Statistiques';
 import StockGraph from './StockGraph';
+import GestionEmployes from './GestionEmployes';  // Ajout de la page GestionEmployes
 
 // Fonction de protection des routes
 const ProtectedRoute = ({ children }) => {
@@ -53,7 +54,7 @@ const NavItem = ({ to, icon: Icon, children, isActive, badge }) => (
   </Link>
 );
 
-// Composant de navigation mobile moderne
+// Composant de navigation mobile
 const MobileNav = ({ isOpen, toggleNav, currentPath, onLogout }) => (
   <div className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${isOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}>
     <div 
@@ -92,6 +93,7 @@ const MobileNav = ({ isOpen, toggleNav, currentPath, onLogout }) => (
         <NavItem to="/ventes" icon={FileText} isActive={currentPath === '/ventes'}>Historique des Ventes</NavItem>
         <NavItem to="/statistiques" icon={Settings} isActive={currentPath === '/statistiques'}>Statistiques</NavItem>
         <NavItem to="/stocks" icon={Package} isActive={currentPath === '/stocks'}>Stocks</NavItem>
+        <NavItem to="/gestion-employes" icon={Users} isActive={currentPath === '/gestion-employes'}>Gestion des Employés</NavItem>
         
         {/* Bouton de déconnexion mobile */}
         <button 
@@ -169,6 +171,7 @@ const AppLayout = ({ children }) => {
                 </button>
               </div>
               
+            
               {/* Avatar et profil */}
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -216,11 +219,12 @@ const AppLayout = ({ children }) => {
               <NavItem to="/ventes" icon={FileText} isActive={location.pathname === '/ventes'}>Historique des Ventes</NavItem>
               <NavItem to="/statistiques" icon={Settings} isActive={location.pathname === '/statistiques'}>Statistiques</NavItem>
               <NavItem to="/stocks" icon={Package} isActive={location.pathname === '/stocks'}>Stocks</NavItem>
+              <NavItem to="/gestion-employes" icon={Users} isActive={location.pathname === '/gestion-employes'}>Gestion des Employés</NavItem>
             </div>
           </div>
         </nav>
 
-        {/* Zone de contenu principal - occupe tout l'espace restant */}
+        {/* Zone de contenu principal */}
         <main className="flex-1 min-w-0 bg-white/80 backdrop-blur-xl overflow-hidden">
           <div className="h-full p-6">
             <div className="h-full overflow-y-auto">
@@ -240,102 +244,25 @@ const AppLayout = ({ children }) => {
   );
 };
 
-// Composant principal de l'application
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Route de login */}
         <Route path="/login" element={<Login />} />
         
-        {/* Routes protégées avec AppLayout */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ListeProduits />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/ajouter-produit" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <AjouterProduit />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/modifier-produit/:id" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ModifierProduit />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/clients" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ListeClients />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/ajouter-client" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <AjouterClient />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/modifier-client/:id" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ModifierClient />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/caisse" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Caisse />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/ventes" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ListeVentes />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/ventes/:id" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <HistoriqueVentes />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/statistiques" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Statistiques />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/stocks" element={
-          <ProtectedRoute>
-            <AppLayout>
-              <StockGraph />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
+        {/* Routes protégées */}
+        <Route path="/" element={<ProtectedRoute><AppLayout><ListeProduits /></AppLayout></ProtectedRoute>} />
+        <Route path="/ajouter-produit" element={<ProtectedRoute><AppLayout><AjouterProduit /></AppLayout></ProtectedRoute>} />
+        <Route path="/modifier-produit/:id" element={<ProtectedRoute><AppLayout><ModifierProduit /></AppLayout></ProtectedRoute>} />
+        <Route path="/clients" element={<ProtectedRoute><AppLayout><ListeClients /></AppLayout></ProtectedRoute>} />
+        <Route path="/ajouter-client" element={<ProtectedRoute><AppLayout><AjouterClient /></AppLayout></ProtectedRoute>} />
+        <Route path="/modifier-client/:id" element={<ProtectedRoute><AppLayout><ModifierClient /></AppLayout></ProtectedRoute>} />
+        <Route path="/caisse" element={<ProtectedRoute><AppLayout><Caisse /></AppLayout></ProtectedRoute>} />
+        <Route path="/ventes" element={<ProtectedRoute><AppLayout><ListeVentes /></AppLayout></ProtectedRoute>} />
+        <Route path="/ventes/:id" element={<ProtectedRoute><AppLayout><HistoriqueVentes /></AppLayout></ProtectedRoute>} />
+        <Route path="/statistiques" element={<ProtectedRoute><AppLayout><Statistiques /></AppLayout></ProtectedRoute>} />
+        <Route path="/stocks" element={<ProtectedRoute><AppLayout><StockGraph /></AppLayout></ProtectedRoute>} />
+        <Route path="/gestion-employes" element={<ProtectedRoute><AppLayout><GestionEmployes /></AppLayout></ProtectedRoute>} />
       </Routes>
     </Router>
   );

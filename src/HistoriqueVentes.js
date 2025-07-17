@@ -22,34 +22,204 @@ const HistoriqueVentes = () => {
       });
   }, [id]);
 
-  // Fonction pour exporter en PDF
+  // Fonction pour exporter en PDF avec design moderne et professionnel
   const handleExportPDF = () => {
     const doc = new jsPDF();
     
-    // Titre de la facture
-    doc.setFontSize(16);
-    doc.text(`Facture #${vente.id}`, 20, 20);
+    // Configuration des couleurs
+    const primaryColor = [59, 130, 246]; // Bleu
+    const secondaryColor = [147, 51, 234]; // Violet
+    const textColor = [31, 41, 55]; // Gris foncé
+    const lightGray = [156, 163, 175]; // Gris clair
+    const successColor = [34, 197, 94]; // Vert
+    const backgroundColor = [248, 250, 252]; // Gris très clair
     
-    // Informations générales de la vente
-    doc.setFontSize(12);
-    doc.text(`Client: ${vente.client ? vente.client.nom : 'Client anonyme'}`, 20, 30);
-    doc.text(`Date de vente: ${new Date(vente.created_at).toLocaleDateString('fr-FR')}`, 20, 40);
-    doc.text(`Mode de paiement: ${vente.mode_paiement}`, 20, 50);
+    // === HEADER AVEC DESIGN MODERNE ===
+    // Fond principal du header
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 40, 'F');
     
-    // Détails des produits
-    let yOffset = 60;
-    vente.produits.forEach((produit) => {
-      doc.text(`${produit.produit.nom} x${produit.quantite} - ${produit.prix_vente.toLocaleString()} FCFA`, 20, yOffset);
-      yOffset += 10;
+    // Accent violet sur le côté
+    doc.setFillColor(...secondaryColor);
+    doc.rect(0, 0, 8, 40, 'F');
+    
+    // Logo/Icône moderne
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(20, 10, 20, 20, 3, 3, 'F');
+    doc.setFillColor(...primaryColor);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('₣', 28, 24);
+    
+    // Titre principal
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('FACTURE', 50, 22);
+    
+    // Numéro de facture avec style
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`N° ${vente.id.toString().padStart(6, '0')}`, 50, 30);
+    
+    // Date et statut dans le header
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    const currentDate = new Date(vente.created_at).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
-
-    // Résumé de la vente
-    doc.text(`Sous-total: ${vente.montant_total.toLocaleString()} FCFA`, 20, yOffset + 10);
-    doc.text(`TVA: 0 FCFA`, 20, yOffset + 20);
-    doc.text(`Total: ${vente.montant_total.toLocaleString()} FCFA`, 20, yOffset + 30);
-
+    doc.text(`Date: ${currentDate}`, 145, 18);
+    
+    // Statut payé
+    doc.setFillColor(...successColor);
+    doc.roundedRect(145, 22, 25, 8, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('PAYÉ', 155, 27);
+    
+    // === INFORMATIONS ENTREPRISE ===
+    let yPos = 50;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...textColor);
+    doc.text('Boutique EC2LT', 145, yPos);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...lightGray);
+    doc.text(' Liberté 2 près du Rond Point Jet d’eau derrière l’immeuble de la banque CBAO', 145, yPos + 6);
+    doc.text('Dakar, Sénégal', 145, yPos + 12);
+    doc.text('Tél: +221 33 868 18 85', 145, yPos + 18);
+    doc.text(' ecole@ec2lt.sn', 145, yPos + 24);
+    
+    // === SECTION CLIENT ===
+    yPos = 80;
+    
+    // Titre section client avec design moderne
+    doc.setFillColor(...backgroundColor);
+    doc.roundedRect(15, yPos - 5, 180, 30, 3, 3, 'F');
+    doc.setFillColor(...primaryColor);
+    doc.roundedRect(15, yPos - 5, 4, 30, 2, 2, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...textColor);
+    doc.text('INFORMATIONS CLIENT', 25, yPos + 2);
+    
+    // Détails client
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...textColor);
+    doc.text(`Client: ${vente.client ? vente.client.nom : 'Client anonyme'}`, 25, yPos + 10);
+    doc.text(`Mode de paiement: ${vente.mode_paiement}`, 25, yPos + 16);
+    
+    // === TABLEAU DES PRODUITS ===
+    yPos = 120;
+    
+    // En-tête du tableau avec design moderne
+    doc.setFillColor(...primaryColor);
+    doc.roundedRect(15, yPos, 180, 12, 2, 2, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('PRODUIT', 20, yPos + 8);
+    doc.text('QTÉ', 120, yPos + 8);
+    doc.text('PRIX UNIT.', 140, yPos + 8);
+    doc.text('TOTAL', 170, yPos + 8);
+    
+    // Lignes des produits
+    yPos += 15;
+    let totalGeneral = 0;
+    
+    vente.produits.forEach((produit, index) => {
+      const totalProduit = produit.quantite * produit.prix_vente;
+      totalGeneral += totalProduit;
+      
+      // Alternance de couleurs pour les lignes
+      if (index % 2 === 0) {
+        doc.setFillColor(249, 250, 251);
+        doc.rect(15, yPos - 3, 180, 12, 'F');
+      }
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...textColor);
+      
+      // Nom du produit (avec troncature si trop long)
+      const nomProduit = produit.produit.nom.length > 25 
+        ? produit.produit.nom.substring(0, 25) + '...' 
+        : produit.produit.nom;
+      doc.text(nomProduit, 20, yPos + 5);
+      
+      // Quantité
+      doc.text(produit.quantite.toString(), 125, yPos + 5);
+      
+      // Prix unitaire
+      doc.text(`${produit.prix_vente.toLocaleString()} F`, 142, yPos + 5);
+      
+      // Total
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${totalProduit.toLocaleString()} F`, 172, yPos + 5);
+      
+      yPos += 12;
+    });
+    
+    // === SECTION TOTAUX ===
+    yPos += 10;
+    
+    // Fond pour la section totaux
+    doc.setFillColor(...backgroundColor);
+    doc.roundedRect(120, yPos - 5, 75, 40, 3, 3, 'F');
+    
+    // Sous-total
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...textColor);
+    doc.text('Sous-total:', 125, yPos + 5);
+    doc.text(`${totalGeneral.toLocaleString()} FCFA`, 165, yPos + 5);
+    
+    // TVA
+    doc.text('TVA (0%):', 125, yPos + 13);
+    doc.text('0 FCFA', 165, yPos + 13);
+    
+    // Ligne de séparation
+    doc.setDrawColor(...lightGray);
+    doc.line(125, yPos + 17, 190, yPos + 17);
+    
+    // Total final
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...successColor);
+    doc.text('TOTAL:', 125, yPos + 25);
+    doc.text(`${totalGeneral.toLocaleString()} FCFA`, 165, yPos + 25);
+    
+    // === PIED DE PAGE ===
+    yPos = 260;
+    
+    // Message de remerciement
+    doc.setFillColor(...primaryColor);
+    doc.roundedRect(15, yPos, 180, 20, 3, 3, 'F');
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('Merci pour votre confiance !', 105, yPos + 8, { align: 'center' });
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Cette facture est générée automatiquement', 105, yPos + 15, { align: 'center' });
+    
+    // Informations légales en bas
+    doc.setFontSize(8);
+    doc.setTextColor(...lightGray);
+    doc.text('Facture générée le ' + new Date().toLocaleDateString('fr-FR'), 105, 285, { align: 'center' });
+    
     // Sauvegarder le fichier PDF
-    doc.save(`facture_${vente.id}.pdf`);
+    doc.save(`facture_moderne_${vente.id}.pdf`);
   };
 
   // Écran de chargement
